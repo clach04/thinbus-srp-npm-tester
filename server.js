@@ -68,6 +68,8 @@ app.get('/load', function(req, res){
     const username = req.query.username
 
     if( typeof username === 'undefined') {
+                console.log('400:');
+
         return res.sendStatus(400);
     } else {
         db.get(username, { asBuffer: false }, function(err,value){
@@ -87,15 +89,19 @@ app.get('/load', function(req, res){
 });
 
 app.post('/challenge', urlencodedParser, function(req, res){
-    if (!req.body) return res.sendStatus(400)
+    if (!req.body) {
+                console.log('400:');
+                return res.sendStatus(400);
+    }
     const username = req.body.username
 
     if( typeof username === 'undefined') {
+        console.log('400:');
         return res.sendStatus(400);
     } else {
         db.get(username, { asBuffer: false }, function(err,value){
             if(err) {
-                //console.log('user not found:'+username); //in the real world you should leak that fact that a user is or is not a customer a unique and stable set of values for unregistered users.')
+                console.log('user not found:'+username); //in the real world you should leak that fact that a user is or is not a customer a unique and stable set of values for unregistered users.')
                 return res.sendStatus(204) // https://stackoverflow.com/a/11760249/329496
             } else {
                 res.setHeader('Content-Type', 'application/json');
@@ -142,7 +148,7 @@ app.post('/authenticate', urlencodedParser, function(req, res){
     const M1 = credentials.M1
     db.get(username, { asBuffer: false }, function(err,value){
     if(err) {
-        //console.log('user not found:'+username); //in the real world you should leak that fact that a user is or is not a customer a unique and stable set of values for unregistered users.')
+        console.log('204: user not found:'+username); //in the real world you should leak that fact that a user is or is not a customer a unique and stable set of values for unregistered users.')
         return res.sendStatus(204) // https://stackoverflow.com/a/11760249/329496
     } else {
         res.setHeader('Content-Type', 'application/json');
@@ -154,6 +160,7 @@ app.post('/authenticate', urlencodedParser, function(req, res){
 
         cache.get(username, {asBuffer: false}, function(err,cacheJson){
           if( err ) {
+              console.log('403:'+username);
             return res.sendStatus(403)
           } else {
             // we now need to load the challenge data from the cache to check the credentials {A,M1}
@@ -168,6 +175,7 @@ app.post('/authenticate', urlencodedParser, function(req, res){
               var string = encodeURIComponent(M2)
               res.redirect('/home?username='+username+'&M2=' + string);
             } catch (e) {
+                console.log('403:'+username);
               return res.sendStatus(403)
             }
           }
